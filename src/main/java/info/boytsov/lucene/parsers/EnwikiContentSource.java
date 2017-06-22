@@ -227,6 +227,7 @@ public class EnwikiContentSource extends ContentSource {
     }
 
     @Override
+    @SuppressWarnings("FallThrough")
     public void startElement(String namespace, String simple, String qualified,
                              Attributes attributes) {
       int elemType = getElementType(qualified);
