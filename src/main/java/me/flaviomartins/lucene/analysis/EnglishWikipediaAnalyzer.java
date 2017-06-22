@@ -26,6 +26,7 @@ import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.StopFilter;
 import org.apache.lucene.analysis.en.EnglishPossessiveFilter;
 import org.apache.lucene.analysis.en.PorterStemFilter;
+import org.apache.lucene.analysis.miscellaneous.LengthFilter;
 import org.apache.lucene.analysis.miscellaneous.SetKeywordMarkerFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardFilter;
@@ -39,6 +40,12 @@ import org.apache.lucene.util.Version;
  * {@link Analyzer} for English Wikipedia.
  */
 public final class EnglishWikipediaAnalyzer extends StopwordAnalyzerBase {
+
+  /** Default maximum allowed token length */
+  public static final int DEFAULT_MAX_TOKEN_LENGTH = 255;
+
+  private int maxTokenLength = DEFAULT_MAX_TOKEN_LENGTH;
+
   private final CharArraySet stemExclusionSet;
    
   /**
@@ -113,6 +120,23 @@ public final class EnglishWikipediaAnalyzer extends StopwordAnalyzerBase {
   }
 
   /**
+   * Set maximum allowed token length.  If a token is seen
+   * that exceeds this length then it is discarded.  This
+   * setting only takes effect the next time tokenStream or
+   * tokenStream is called.
+   */
+  public void setMaxTokenLength(int length) {
+    maxTokenLength = length;
+  }
+
+  /**
+   * @see #setMaxTokenLength
+   */
+  public int getMaxTokenLength() {
+    return maxTokenLength;
+  }
+
+  /**
    * Creates a
    * {@link org.apache.lucene.analysis.Analyzer.TokenStreamComponents}
    * which tokenizes all the text in the provided {@link Reader}.
@@ -129,7 +153,8 @@ public final class EnglishWikipediaAnalyzer extends StopwordAnalyzerBase {
   protected TokenStreamComponents createComponents(String fieldName,
       Reader reader) {
     final Tokenizer source = new WikipediaTokenizer(reader);
-    TokenStream result = new StandardFilter(getVersion(), source);
+    TokenStream result = new LengthFilter(source, 0, maxTokenLength);
+    result = new StandardFilter(getVersion(), result);
     // prior to this we get the classic behavior, standardfilter does it for us.
     if (getVersion().onOrAfter(Version.LUCENE_3_1))
       result = new EnglishPossessiveFilter(getVersion(), result);

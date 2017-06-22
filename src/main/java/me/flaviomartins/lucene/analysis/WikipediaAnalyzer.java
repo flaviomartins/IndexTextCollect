@@ -21,6 +21,7 @@ import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.analysis.core.StopFilter;
+import org.apache.lucene.analysis.miscellaneous.LengthFilter;
 import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.analysis.util.StopwordAnalyzerBase;
@@ -38,6 +39,11 @@ import java.io.Reader;
  */
 public final class WikipediaAnalyzer extends StopwordAnalyzerBase {
   
+  /** Default maximum allowed token length */
+  public static final int DEFAULT_MAX_TOKEN_LENGTH = 255;
+
+  private int maxTokenLength = DEFAULT_MAX_TOKEN_LENGTH;
+
   /** An unmodifiable set containing some common English words that are usually not
   useful for searching. */
   public static final CharArraySet STOP_WORDS_SET = StopAnalyzer.ENGLISH_STOP_WORDS_SET; 
@@ -85,10 +91,28 @@ public final class WikipediaAnalyzer extends StopwordAnalyzerBase {
     this(matchVersion, loadStopwordSet(stopwords, matchVersion));
   }
 
+  /**
+   * Set maximum allowed token length.  If a token is seen
+   * that exceeds this length then it is discarded.  This
+   * setting only takes effect the next time tokenStream or
+   * tokenStream is called.
+   */
+  public void setMaxTokenLength(int length) {
+    maxTokenLength = length;
+  }
+
+  /**
+   * @see #setMaxTokenLength
+   */
+  public int getMaxTokenLength() {
+    return maxTokenLength;
+  }
+
   @Override
   protected TokenStreamComponents createComponents(final String fieldName, final Reader reader) {
     final WikipediaTokenizer src = new WikipediaTokenizer(reader);
-    TokenStream tok = new StandardFilter(getVersion(), src);
+    TokenStream tok = new LengthFilter(src, 0, maxTokenLength);
+    tok = new StandardFilter(getVersion(), tok);
     tok = new LowerCaseFilter(getVersion(), tok);
     tok = new StopFilter(getVersion(), tok, stopwords);
     return new TokenStreamComponents(src, tok) {
