@@ -12,7 +12,7 @@ package info.boytsov.lucene;
 import java.io.File;
 import java.util.Properties;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import me.flaviomartins.lucene.analysis.EnglishWikipediaAnalyzer;
 import org.apache.lucene.benchmark.byTask.feeds.ContentSource;
 import org.apache.lucene.benchmark.byTask.feeds.DocMaker;
 import org.apache.lucene.benchmark.byTask.utils.Config;
@@ -74,7 +74,7 @@ public class CreateIndex {
 
     FSDirectory dir = FSDirectory.open(outputDir);
 
-    StandardAnalyzer analyzer = new StandardAnalyzer(
+    EnglishWikipediaAnalyzer analyzer = new EnglishWikipediaAnalyzer(
             Version.LUCENE_46);// default
                                // stop
                                // words
